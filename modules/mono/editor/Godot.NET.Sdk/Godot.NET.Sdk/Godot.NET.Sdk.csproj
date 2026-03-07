@@ -34,4 +34,8 @@
     <None Include="Sdk\iOSNativeAOT.props" Pack="true" PackagePath="Sdk" />
     <None Include="Sdk\iOSNativeAOT.targets" Pack="true" PackagePath="Sdk" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+  </ItemGroup>
 </Project>

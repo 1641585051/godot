@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -90,6 +92,8 @@ namespace Godot.SourceGenerators
 
             source.Append("using Godot;\n");
             source.Append("using Godot.NativeInterop;\n");
+            source.Append("using System;\n");
+            source.Append("using HarmonyLib;\n");
             source.Append("\n");
 
             if (hasNamespace)
@@ -119,8 +123,10 @@ namespace Godot.SourceGenerators
                 }
             }
 
+            var classNa = symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
             source.Append("partial class ");
-            source.Append(symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+            source.Append(classNa);
             source.Append("\n{\n");
 
             var members = symbol.GetMembers();
@@ -128,9 +134,10 @@ namespace Godot.SourceGenerators
             var methodSymbols = members
                 .Where(s => s.Kind == SymbolKind.Method && !s.IsImplicitlyDeclared)
                 .Cast<IMethodSymbol>()
-                .Where(m => m.MethodKind == MethodKind.Ordinary);
+                .Where(m => m.MethodKind == MethodKind.Ordinary | m.MethodKind == MethodKind.ExplicitInterfaceImplementation);
 
             var godotClassMethods = methodSymbols.WhereHasGodotCompatibleSignature(typeCache)
+                .Where(m => m.Method.MethodKind == MethodKind.Ordinary)
                 .Distinct(new MethodOverloadEqualityComparer())
                 .ToArray();
 
@@ -202,6 +209,23 @@ namespace Godot.SourceGenerators
             }
 
             source.Append("#pragma warning restore CS0109\n");
+
+            // Generate GodotProfileZoneScript Hook Context
+
+            foreach (var hookMethod in methodSymbols.Distinct())
+            {
+                //no hook Override and HidesBaseMethodsByName
+                if (hookMethod.IsOverride | hookMethod.HidesBaseMethodsByName)
+                {
+                    continue;
+                }
+                GenerateHookContext(
+                    hookMethod,
+                    source,
+                    classNa,
+                    classNs);
+            }
+
 
             // Generate InvokeGodotClassMethod
 
@@ -470,5 +494,127 @@ namespace Godot.SourceGenerators
 
             source.Append("        }\n");
         }
+
+/*
+        [HarmonyPatch(typeof(ScriptMethodsGenerator), "textMethod", new Type[] {
+
+        })]
+
+        public partial class TProfileHook
+        {
+
+            public static void Prefix(TProfileHook __instance)
+            {
+
+            }
+
+
+        }
+*/
+        private static void GenerateHookContext(
+            IMethodSymbol method,
+            StringBuilder source,
+            string className,
+            string namespaceName)
+        {
+            //hook lib doesn't necessarily have a stable implementation for all platforms
+#if WINDOWS
+
+            string methodName = method.Name;
+
+            source.Append("         [HarmonyPatch(typeof(");
+            source.Append(className);
+            source.Append("),\"");
+            source.Append(methodName);
+            source.Append("\")]\n");
+
+            source.Append("public partial class ");
+            source.Append(className);
+            source.Append("To");
+            source.Append(methodName);
+            source.Append("ProfileHook");
+            source.Append(new Random().Next(0,65536));
+            source.Append("\n{\n");
+
+                source.Append("            public static void Prefix(");
+                source.Append(className);
+                source.Append(" __instance){\n");
+
+                    //Generate GodotProfileZoneScript
+                    //            NativeFuncs.godotsharp_godot_profile_zone_script(obj,methodName);
+
+                    if(method.IsStatic)
+                    {
+                        source.Append("        if(true){\n");
+                        source.Append("var fullName = ");
+                        source.Append("\"");
+                        source.Append(namespaceName);
+                        source.Append(".");
+                        source.Append(className);
+                        source.Append(".");
+                        source.Append(methodName);
+                        source.Append("\";\n");
+                    }
+                    else
+                    {
+                        source.Append("        if(__instance is Node){\n");
+
+                    }
+
+
+                    source.Append("           using godot_string methodName = Marshaling.ConvertStringToNative(");
+                    if(method.IsStatic)
+                    {
+
+                        source.Append("fullName");
+                    }
+                    else
+                    {
+
+                        source.Append("nameof(");
+                        source.Append(methodName);
+                        source.Append(")");
+
+                    }
+                    source.Append(");\n");
+
+
+                    source.Append("            NativeFuncs.godotsharp_godot_profile_zone_script(");
+
+                    if(method.IsStatic)
+                    {
+                        source.Append("0");
+
+                    }
+                    else
+                    {
+
+                        source.Append("__instance.NativeInstance");
+
+                    }
+                    source.Append(",");
+                    source.Append("methodName");
+                    source.Append(");\n");
+
+
+
+                    source.Append("}\n");
+
+                source.Append("}\n");
+
+            source.Append("\n}\n\n");
+
+#endif
+
+
+
+
+
+
+
+        }
+
+
+
     }
 }

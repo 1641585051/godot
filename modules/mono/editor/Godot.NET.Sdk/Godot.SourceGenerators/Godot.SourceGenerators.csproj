@@ -4,6 +4,7 @@
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <DefineConstants>WINDOWS;LINUX;APPLE;UNIX</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <Description>Core C# source generator for Godot projects.</Description>
@@ -28,6 +29,7 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

@@ -55,6 +55,7 @@
 #include "core/os/mutex.h"
 #include "core/os/os.h"
 #include "core/os/thread.h"
+#include "core/profiling/profiling.h"
 #include "servers/text/text_server.h"
 
 #ifdef TOOLS_ENABLED
@@ -1699,6 +1700,8 @@ int CSharpInstance::get_method_argument_count(const StringName &p_method, bool *
 
 Variant CSharpInstance::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 	ERR_FAIL_COND_V(script.is_null(), Variant());
+
+	GodotProfileZoneScript(this, StringName(script->get_path()), script->get_class_name(), p_method,script->get_member_line(p_method));
 
 	Variant ret;
 	GDMonoCache::managed_callbacks.CSharpInstanceBridge_Call(

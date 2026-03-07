@@ -46,6 +46,7 @@
 #include "core/object/method_bind.h"
 #include "core/os/os.h"
 #include "core/string/string_name.h"
+#include "core/profiling/profiling.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/file_system/editor_file_system.h"
@@ -1564,6 +1565,55 @@ void godotsharp_object_to_string(Object *p_ptr, godot_string *r_str) {
 			String("<" + p_ptr->get_class() + "#" + itos(p_ptr->get_instance_id()) + ">"));
 }
 
+
+void godotsharp_godot_profile_zone_script(Object *p_ptr,const String *p_str)
+{
+		
+#if defined(GODOT_USE_TRACY)
+
+	StringName name = StringName(*p_str);
+
+	if(p_ptr == nullptr)
+	{
+		//csharp static method
+		GodotProfileZoneScript(
+			p_str,
+			StringName(),
+			name,
+			name,
+			-1
+			);
+			
+	}
+	else 
+	{
+		Ref<Script> script = p_ptr->get_script_instance()->get_script();
+		
+		GodotProfileZoneScript(
+			p_ptr->get_script_instance(),
+			StringName(script->get_path()),
+			script->get_class_name(),
+			name,
+			script->get_member_line(name)
+			);
+		
+	}
+	
+	
+	
+
+
+
+
+#endif
+
+	
+
+}
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -1856,6 +1906,10 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_packed_vector4_array_size,
 	(void *)godotsharp_packed_color_array_size,
 	(void *)godotsharp_array_size,
+	(void *)godotsharp_godot_profile_zone_script,
+
+
+
 };
 
 const void **godotsharp::get_runtime_interop_funcs(int32_t &r_size) {
