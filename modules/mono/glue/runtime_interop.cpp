@@ -46,6 +46,7 @@
 #include "core/object/method_bind.h"
 #include "core/os/os.h"
 #include "core/string/string_name.h"
+#include "core/profiling/profiling.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/file_system/editor_file_system.h"
@@ -1564,6 +1565,27 @@ void godotsharp_object_to_string(Object *p_ptr, godot_string *r_str) {
 			String("<" + p_ptr->get_class() + "#" + itos(p_ptr->get_instance_id()) + ">"));
 }
 
+Object* godotsharp_godot_profile_zone_script_begin(const String *p_location_format_str, const String *p_file, const String *p_function, const String *p_name, uint32_t p_line)
+{
+	return GodotProFileEmitZoneBegin(
+			StringName(*p_location_format_str),
+			StringName(*p_file),
+			StringName(*p_function),
+			StringName(*p_name),
+			p_line);	
+	
+	
+
+}
+
+void godotsharp_godot_profile_zone_script_end(Object* ctx)
+{
+
+	GodotProFileEmitZoneEnd(Object::cast_to<tracy::TracyCZoneCtxA>(ctx));
+
+}
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -1856,6 +1878,10 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_packed_vector4_array_size,
 	(void *)godotsharp_packed_color_array_size,
 	(void *)godotsharp_array_size,
+	(void *)godotsharp_godot_profile_zone_script_begin,
+	(void *)godotsharp_godot_profile_zone_script_end
+
+
 };
 
 const void **godotsharp::get_runtime_interop_funcs(int32_t &r_size) {
