@@ -1565,53 +1565,25 @@ void godotsharp_object_to_string(Object *p_ptr, godot_string *r_str) {
 			String("<" + p_ptr->get_class() + "#" + itos(p_ptr->get_instance_id()) + ">"));
 }
 
-
-void godotsharp_godot_profile_zone_script(Object *p_ptr,const String *p_str)
+Object* godotsharp_godot_profile_zone_script_begin(const String *p_location_format_str, const String *p_file, const String *p_function, const String *p_name, uint32_t p_line)
 {
-		
-#if defined(GODOT_USE_TRACY)
-
-	StringName name = StringName(*p_str);
-
-	if(p_ptr == nullptr)
-	{
-		//csharp static method
-		GodotProfileZoneScript(
-			p_str,
-			StringName(),
-			name,
-			name,
-			-1
-			);
-			
-	}
-	else 
-	{
-		Ref<Script> script = p_ptr->get_script_instance()->get_script();
-		
-		GodotProfileZoneScript(
-			p_ptr->get_script_instance(),
-			StringName(script->get_path()),
-			script->get_class_name(),
-			name,
-			script->get_member_line(name)
-			);
-		
-	}
+	return GodotProFileEmitZoneBegin(
+			StringName(*p_location_format_str),
+			StringName(*p_file),
+			StringName(*p_function),
+			StringName(*p_name),
+			p_line);	
 	
-	
-	
-
-
-
-
-#endif
-
 	
 
 }
 
+void godotsharp_godot_profile_zone_script_end(Object* ctx)
+{
 
+	GodotProFileEmitZoneEnd(Object::cast_to<tracy::TracyCZoneCtxA>(ctx));
+
+}
 
 
 #ifdef __cplusplus
@@ -1906,8 +1878,8 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_packed_vector4_array_size,
 	(void *)godotsharp_packed_color_array_size,
 	(void *)godotsharp_array_size,
-	(void *)godotsharp_godot_profile_zone_script,
-
+	(void *)godotsharp_godot_profile_zone_script_begin,
+	(void *)godotsharp_godot_profile_zone_script_end
 
 
 };

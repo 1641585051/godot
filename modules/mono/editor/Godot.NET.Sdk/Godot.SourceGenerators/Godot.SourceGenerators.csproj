@@ -22,6 +22,7 @@
     <!-- Do not include the generator as a lib dependency -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DefineConstants Condition="'$(UseTracyOnCs)'== 'true'">USE_TRACY</DefineConstants>
   </PropertyGroup>
   <!-- Analyzer release tracking -->
   <ItemGroup>
@@ -29,7 +30,6 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

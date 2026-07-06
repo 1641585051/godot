@@ -632,10 +632,11 @@ namespace Godot.NativeInterop
         public static partial long godotsharp_packed_color_array_size(in godot_packed_color_array p_self);
 
         public static partial long godotsharp_array_size(in godot_array p_self);
-    
+
         //profile
-        public static partial void godotsharp_godot_profile_zone_script(IntPtr p_ptr,in godot_string p_str);
-    
-    
+        public static partial IntPtr godotsharp_godot_profile_zone_script_begin(in godot_string p_location_format_str, in godot_string p_file, in godot_string p_function, in godot_string p_name, uint p_line);
+
+        public static partial void godotsharp_godot_profile_zone_script_end(IntPtr ctx);
+
     }
 }

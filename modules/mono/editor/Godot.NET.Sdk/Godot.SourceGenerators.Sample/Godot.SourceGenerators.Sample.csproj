@@ -28,9 +28,7 @@
     <ProjectReference Include="..\Godot.SourceGenerators\Godot.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-  </ItemGroup>
+
 
   <!-- This file is imported automatically when using PackageReference to
   reference Godot.SourceGenerators, but not when using ProjectReference -->
