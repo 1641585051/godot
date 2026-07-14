@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -179,18 +180,129 @@ namespace Godot.SourceGenerators
                 .Where(m => m.MethodKind == MethodKind.Ordinary);
 
 
-
-
             source.Append("        public class ");
             source.Append("ProFilePatchClass");
             source.Append(classNa);
             //class
             source.Append("\n        {\n");
 
+            var attributesDefineFunc = new List<KeyValuePair<string, Tuple<Action<StringBuilder, object[]>, object[]>>>();
+
             foreach (var methodSymbol in methodSymbols)
             {
 
                 var methodName = methodSymbol.Name;
+
+                foreach (var attributeData in methodSymbol.GetAttributes())
+                {
+
+                    var attributeType = attributeData.AttributeClass;
+
+                    var fullNameSpace = attributeType?.ContainingNamespace.FullQualifiedNameOmitGlobal();
+
+                    var args = new List<object>();
+                    foreach (var attributeDataConstructorArgument in attributeData.ConstructorArguments)
+                    {
+                        if (attributeDataConstructorArgument.Value != null)
+                            args.Add(attributeDataConstructorArgument.Value);
+                    }
+
+
+                    if (attributeType is { Name: "OverNameAttribute"} && fullNameSpace == "ProFiling")
+                    {
+
+                        // see profiling.cpp ProFileEditorPlugin::get_state OverNameAttribute
+                        void OverName(StringBuilder builder, object[] subArgs)
+                        {
+                            if (subArgs[0] is not string overNameArg)
+                            {
+                                return;
+                            }
+
+                            builder.Append("                    var overName =");
+                            builder.Append("@\"");
+                            builder.Append(overNameArg);
+                            builder.Append("\"");
+                            builder.Append(";\n");
+
+                            builder.Append("			        using var overNameNativeStr = Marshaling.ConvertStringToNative(overName);\n");
+
+                            builder.Append("			        NativeFuncs.godotsharp_godot_proFile_emit_zero_name(ctx, overNameNativeStr);\n");
+
+                        }
+
+                        if (!attributesDefineFunc.Any(p => p.Key.Contains(attributeType.Name)))
+                        {
+                            attributesDefineFunc.Add(new KeyValuePair<string, Tuple<Action<StringBuilder, object[]>, object[]>>(attributeType.Name,new Tuple<Action<StringBuilder, object[]>, object[]>(OverName,args.ToArray())));
+                        }
+
+                    }
+                    else if (attributeType is { Name: "OverColorAttribute" } && fullNameSpace == "ProFiling")
+                    {
+                        // see profiling.cpp ProFileEditorPlugin::get_state OverNameAttribute
+                        void OverColor(StringBuilder builder, object[] subArgs)
+                        {
+                            if (subArgs[0] is not string overColorArg)
+                            {
+                                return;
+                            }
+
+                            if (!overColorArg.StartsWith("Colors."))
+                            {
+                                return;
+                            }
+
+                            builder.Append("			        var colorToInt = ");
+                            builder.Append(overColorArg);
+                            builder.Append(".ToHtml(false);\n");
+
+                            builder.Append("                    var num = (uint)int.Parse(colorToInt, System.Globalization.NumberStyles.HexNumber);\n");
+
+                            builder.Append("			        NativeFuncs.godotsharp_godot_proFile_emit_zero_color(ctx, num);\n");
+
+
+                        }
+
+                        if (!attributesDefineFunc.Any(p => p.Key.Contains(attributeType.Name)))
+                        {
+                            attributesDefineFunc.Add(new KeyValuePair<string, Tuple<Action<StringBuilder, object[]>, object[]>>(attributeType.Name,new Tuple<Action<StringBuilder, object[]>, object[]>(OverColor,args.ToArray())));
+                        }
+
+
+                    }
+                    else if (attributeType is { Name: "OverTextAttribute"} && fullNameSpace == "ProFiling")
+                    {
+
+                        void OverText(StringBuilder builder, object[] subArgs)
+                        {
+
+                            if (subArgs[0] is not string overTextArg)
+                            {
+                                return;
+                            }
+
+                            builder.Append("                    var overText =");
+                            builder.Append("@\"");
+                            builder.Append(overTextArg);
+                            builder.Append("\"");
+                            builder.Append(";\n");
+
+                            builder.Append("			        using var overTextNativeStr = Marshaling.ConvertStringToNative(overText);\n");
+
+                            builder.Append("			        NativeFuncs.godotsharp_godot_proFile_emit_zero_name(ctx, overTextNativeStr);\n");
+
+
+                        }
+
+                        if (!attributesDefineFunc.Any(p => p.Key.Contains(attributeType.Name)))
+                        {
+                            attributesDefineFunc.Add(new KeyValuePair<string, Tuple<Action<StringBuilder, object[]>, object[]>>(attributeType.Name,new Tuple<Action<StringBuilder, object[]>, object[]>(OverText,args.ToArray())));
+                        }
+
+                    }
+
+
+                }
 
                 source.Append("         [HarmonyPatch(typeof(");
                 source.Append(classNa);
@@ -271,9 +383,21 @@ namespace Godot.SourceGenerators
 
                 source.Append("			        using var locationFormatNativeStr = Marshaling.ConvertStringToNative(locationFormatStr);\n");
 
-                source.Append("			        __state = NativeFuncs.godotsharp_godot_profile_zone_script_begin(locationFormatNativeStr, filePathNativeStr, memberNameNativeStr, fileNameNativeStr, (uint)methodLine);\n");
+                source.Append("			        var ctx = NativeFuncs.godotsharp_godot_profile_zone_script_begin(locationFormatNativeStr, filePathNativeStr, memberNameNativeStr, fileNameNativeStr, (uint)methodLine);\n");
 
+                source.Append("                 __state = ctx;\n");
 
+                //OverName insert pos
+                var overNameTuple = attributesDefineFunc.FirstOrDefault(pair => pair.Key == "OverNameAttribute").Value;
+                overNameTuple?.Item1(source, overNameTuple.Item2);
+
+                //OverColor insert pos
+                var overColorTuple = attributesDefineFunc.FirstOrDefault(pair => pair.Key == "OverColorAttribute").Value;
+                overColorTuple?.Item1(source, overColorTuple.Item2);
+
+                //OverText insert pos
+                var overTextTuple = attributesDefineFunc.FirstOrDefault(pair => pair.Key == "OverTextAttribute").Value;
+                overTextTuple?.Item1(source, overTextTuple.Item2);
 
                 //method
                 source.Append("\n         }\n");
@@ -310,6 +434,8 @@ namespace Godot.SourceGenerators
 
                 //sub class
                 source.Append("\n        }\n");
+
+                attributesDefineFunc.Clear();
 
             }
 

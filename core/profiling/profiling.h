@@ -76,6 +76,12 @@ TracyCZoneCtxA *ProFileEmitZoneBegin(const StringName &p_location_format_str, co
 
 void ProFileEmitZoneEnd(TracyCZoneCtxA *ctx);
 
+void ProFileEmitZeroName(TracyCZoneCtxA *ctx,const StringName &p_name);
+
+void ProFileEmitZeroColor(TracyCZoneCtxA *ctx,uint32_t color);
+
+void ProFileEmitZeroText(TracyCZoneCtxA *ctx,const StringName &p_text);
+
 class ProFileEditorPlugin 
 #ifdef TOOLS_ENABLED
 		
@@ -128,6 +134,13 @@ public:
 #define GodotProFileEmitZoneEnd(ctx) \
 	tracy::ProFileEmitZoneEnd(ctx)
 
+#define GodotProFileEmitZeroName(ctx, name) \
+    tracy::ProFileEmitZeroName(ctx, name)
+#define GodotProFileEmitZeroColor(ctx, color) \
+    tracy::ProFileEmitZeroColor(ctx, color)
+#define GodotProFileEmitZeroText(ctx, text) \
+    tracy::ProFileEmitZeroText(ctx, text)
+ 
 // Memory allocation
 #ifdef GODOT_PROFILER_TRACK_MEMORY
 #define GodotProfileAlloc(m_ptr, m_size)                       \
@@ -180,6 +193,9 @@ struct PerfettoGroupedEventEnder {
 
 #define GodotProFileEmitZoneBegin(m_location_format_str, m_file, m_function, m_name, m_line) 
 #define GodotProFileEmitZoneEnd(ctx) 
+#define GodotProFileEmitZeroName(ctx,name) 
+#define GodotProFileEmitZeroColor(ctx,color) 
+#define GodotProFileEmitZeroText(ctx, text) 
 
 #define GodotProfileAlloc(m_ptr, m_size)
 #define GodotProfileFree(m_ptr)
@@ -242,6 +258,9 @@ private:
 
 #define GodotProFileEmitZoneBegin(m_location_format_str, m_file, m_function, m_name, m_line) 
 #define GodotProFileEmitZoneEnd(ctx) 
+#define GodotProFileEmitZeroName(ctx,name) 
+#define GodotProFileEmitZeroColor(ctx,color) 
+#define GodotProFileEmitZeroText(ctx, text) 
 
 // Instruments has its own memory profiling, so these are no-ops.
 #define GodotProfileAlloc(m_ptr, m_size)
@@ -285,6 +304,8 @@ void godot_cleanup_profiler();
 #define GodotProFileEmitZoneBegin(m_location_format_str, m_file, m_function, m_name, m_line) 
 #define GodotProFileEmitZoneEnd(ctx) 
 
-
+#define GodotProFileEmitZeroName(ctx,name) 
+#define GodotProFileEmitZeroColor(ctx,color) 
+#define GodotProFileEmitZeroText(ctx, text) 
 
 #endif

@@ -638,5 +638,12 @@ namespace Godot.NativeInterop
 
         public static partial void godotsharp_godot_profile_zone_script_end(IntPtr ctx);
 
+        public static partial void godotsharp_godot_proFile_emit_zero_name(IntPtr ctx, in godot_string p_name);
+
+        public static partial void godotsharp_godot_proFile_emit_zero_color(IntPtr ctx, uint color);
+
+        public static partial void godotsharp_godot_proFile_emit_zero_text(IntPtr ctx, in godot_string p_text);
+
+
     }
 }

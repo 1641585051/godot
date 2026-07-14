@@ -223,6 +223,30 @@ void tracy::ProFileEmitZoneEnd(tracy::TracyCZoneCtxA *ctx){
 	memdelete_notnull(ctx);
 }
 
+
+void tracy::ProFileEmitZeroName(TracyCZoneCtxA *ctx,const StringName &p_name){
+
+    const StringInternData * name = _intern_name(p_name);
+    const char* d_name = name->name_utf8.get_data();
+    ___tracy_emit_zone_name(ctx->tracyCZoneCtx ,d_name,strlen(d_name)); 
+
+
+}
+
+void ProFileEmitZeroColor(TracyCZoneCtxA *ctx, uint32_t color) {
+
+    ___tracy_emit_zone_color(ctx->tracyCZoneCtx ,color);
+
+}
+
+void ProFileEmitZeroText(TracyCZoneCtxA *ctx, const StringName &p_text) {
+
+    const StringInternData * text = _intern_name(p_text);
+    const char* d_text = text->name_utf8.get_data();
+    ___tracy_emit_zone_text(ctx->tracyCZoneCtx, d_text, strlen(d_text));
+
+}
+
 #ifdef TOOLS_ENABLED
 Dictionary tracy::ProFileEditorPlugin::get_state() const { 
 	
@@ -263,7 +287,6 @@ Dictionary tracy::ProFileEditorPlugin::get_state() const {
 				
 		opf->store_line("	// If a method uses the OverName attribute, the name");
 		opf->store_line("	//  of the zone in Tracy will be changed to the name specified in the OverName attribute.\n");
-		
 		opf->store_line("	[AttributeUsage(AttributeTargets.Method)]\n");
 
 		opf->store_line("	public class OverNameAttribute : Attribute");
@@ -280,8 +303,52 @@ Dictionary tracy::ProFileEditorPlugin::get_state() const {
 
 		opf->store_line("		}\n");
 
+		opf->store_line("	}\n\n");
+
+        opf->store_line("	// If a method uses the OverColor attribute, the color");
+		opf->store_line("	//  of the zone in Tracy will be changed to the name specified in the OverColorattribute.\n");
+		opf->store_line("	//OverColorAttribute need a parameter that's a string type (e.g:\"Colors.Red\") \n");
+		
+        opf->store_line("	[AttributeUsage(AttributeTargets.Method)]\n");
+
+		opf->store_line("	public class OverColorAttribute : Attribute");
+
+		opf->store_line("	{\n");
+
+		opf->store_line("		public string color;\n");
+
+		opf->store_line("		public OverColorAttribute(string overrideColor)\n");
+
+		opf->store_line("		{\n");
+
+		opf->store_line("			color = overrideColor;\n");
+
+		opf->store_line("		}\n");
+
 		opf->store_line("	}\n");
 
+
+        opf->store_line("	// If a method uses the OverText attribute, the text");
+		opf->store_line("	//  of the zone in Tracy will be changed to the name specified in the OverColorattribute.\n");
+		opf->store_line("	//OverColorAttribute need a parameter that's a string type (e.g:\"Godot.Red\") \n");
+		
+        opf->store_line("	[AttributeUsage(AttributeTargets.Method)]\n");
+
+		opf->store_line("	public class OverTextAttribute : Attribute");
+
+		opf->store_line("	{\n");
+
+		opf->store_line("		public string text;\n");
+
+		opf->store_line("		public OverTextAttribute(string overrideText)\n");
+
+		opf->store_line("		{\n");
+
+		opf->store_line("			text = overrideText;\n");
+
+		opf->store_line("		}\n");
+
+		opf->store_line("	}\n");
 
 
 		opf->store_line("}\n");

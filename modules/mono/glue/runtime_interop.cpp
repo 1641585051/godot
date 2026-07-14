@@ -1585,6 +1585,25 @@ void godotsharp_godot_profile_zone_script_end(Object* ctx)
 
 }
 
+void godotsharp_godot_proFile_emit_zero_name(Object* ctx,const String *p_name)
+{
+
+    GodotProFileEmitZeroName(Object::cast_to<tracy::TracyCZoneCtxA>(ctx),StringName(*p_name));
+}
+
+void godotsharp_godot_proFile_emit_zero_color(Object* ctx,uint32_t color)
+{
+
+    GodotProFileEmitZeroColor(Object::cast_to<tracy::TracyCZoneCtxA>(ctx), color);
+}
+
+void godotsharp_godot_proFile_emit_zero_text(Object* ctx, const String *p_text)
+{
+
+    GodotProFileEmitZeroText(Object::cast_to<tracy::TracyCZoneCtxA>(ctx), StringName(*p_text));
+
+}
+
 
 #ifdef __cplusplus
 }
@@ -1879,8 +1898,12 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_packed_color_array_size,
 	(void *)godotsharp_array_size,
 	(void *)godotsharp_godot_profile_zone_script_begin,
-	(void *)godotsharp_godot_profile_zone_script_end
-
+	(void *)godotsharp_godot_profile_zone_script_end,
+    (void *)godotsharp_godot_proFile_emit_zero_name,
+    (void *)godotsharp_godot_proFile_emit_zero_color,
+    (void *)godotsharp_godot_proFile_emit_zero_text
+    
+    
 
 };
 
